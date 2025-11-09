@@ -1,111 +1,98 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistema de Ocorrências</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Manutenção</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f9;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+      background-color: #f2f2f2;
       margin: 0;
+      padding: 0;
     }
     .container {
-      background: white;
+      max-width: 500px;
+      margin: 50px auto;
+      background-color: white;
       padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-    h1 {
-      margin-bottom: 20px;
+    h2 {
+      text-align: center;
       color: #333;
     }
-    button {
-      width: 100%;
-      padding: 15px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 10px;
-      font-size: 18px;
-      cursor: pointer;
-      color: white;
-      background-color: #007bff;
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
     }
-    button:hover { background-color: #0056b3; }
-    input, select, textarea {
+    select, textarea, input[type="file"], button {
       width: 100%;
-      margin: 8px 0;
       padding: 10px;
+      margin-top: 8px;
       border-radius: 8px;
       border: 1px solid #ccc;
-      font-size: 16px;
+      box-sizing: border-box;
     }
-    #registro { display: none; }
-    .hidden { display: none; }
+    button {
+      background-color: #0066cc;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      margin-top: 20px;
+    }
+    button:hover {
+      background-color: #004c99;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Tela 1 -->
-    <div id="inicio">
-      <h1>Tipo de manutenção</h1>
-      <button onclick="selecionarTipo('PREVENTIVA')">PREVENTIVA</button>
-      <button onclick="selecionarTipo('CORRETIVA')">CORRETIVA</button>
-    </div>
+    <h2>Cadastro de Manutenção</h2>
+    
+    <label for="tipo">Tipo de Manutenção:</label>
+    <select id="tipo">
+      <option value="preventiva">Preventiva</option>
+      <option value="corretiva">Corretiva</option>
+    </select>
 
-    <!-- Tela 2 -->
-    <div id="registro">
-      <h1 id="titulo-tipo"></h1>
-      <select id="ugd" required>
-        <option value="">Selecione a UGD</option>
-        <option>UGD25</option>
-        <option>UGD30</option>
-        <option>UGD40</option>
-        <option>UGD50</option>
-      </select>
-      <textarea id="descricao" placeholder="Descreva a ocorrência..." rows="3"></textarea>
-      <input type="file" id="fotos" multiple accept="image/*">
-      <button onclick="enviar()">ENVIAR</button>
-      <button onclick="voltar()">VOLTAR</button>
-    </div>
+    <label for="ugd">Selecione a UGD:</label>
+    <select id="ugd">
+      <option value="">Selecione...</option>
+      <!-- Gera UGD01 a UGD60 -->
+      <script>
+        for (let i = 1; i <= 60; i++) {
+          const num = i.toString().padStart(2, '0');
+          document.write(`<option value="UGD${num}">UGD${num}</option>`);
+        }
+      </script>
+    </select>
+
+    <label for="descricao">Descrição:</label>
+    <textarea id="descricao" rows="3" placeholder="Ex: Vazamento de diesel próximo ao tanque."></textarea>
+
+    <label for="fotos">Envio de fotos:</label>
+    <input type="file" id="fotos" multiple accept="image/*">
+
+    <button onclick="enviar()">Enviar</button>
   </div>
 
   <script>
-    let tipoSelecionado = "";
-
-    function selecionarTipo(tipo) {
-      tipoSelecionado = tipo;
-      document.getElementById("inicio").style.display = "none";
-      document.getElementById("registro").style.display = "block";
-      document.getElementById("titulo-tipo").innerText = "Ocorrência " + tipo;
-    }
-
-    function voltar() {
-      document.getElementById("inicio").style.display = "block";
-      document.getElementById("registro").style.display = "none";
-    }
-
     function enviar() {
-      const ugd = document.getElementById("ugd").value.trim();
-      const descricao = document.getElementById("descricao").value.trim();
-      const fotos = document.getElementById("fotos").files;
+      const tipo = document.getElementById('tipo').value;
+      const ugd = document.getElementById('ugd').value;
+      const descricao = document.getElementById('descricao').value.trim();
 
-      if (!ugd || !descricao || fotos.length === 0) {
-        alert("Por favor, preencha todos os campos e selecione pelo menos uma foto.");
+      if (!ugd || !descricao) {
+        alert('Por favor, selecione a UGD e preencha a descrição.');
         return;
       }
 
-      const nomePasta = `${ugd} - ${descricao}`;
-      alert(`✅ Dados prontos para envio!\n\nTipo: ${tipoSelecionado}\nPasta: ${nomePasta}\nFotos: ${fotos.length}`);
-      
-      // 🔧 Aqui depois vamos colocar o envio para o Google Apps Script
+      const nomePasta = `${tipo.toUpperCase()} / ${ugd} - ${descricao}`;
+      alert(`Simulação de envio:\n\nA pasta criada será:\n${nomePasta}`);
     }
   </script>
 </body>
