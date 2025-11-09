@@ -1,116 +1,52 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Cadastro de Manutenção</title>
-  <style>
-    body {font-family: Arial, Helvetica, sans-serif; background: #f4f6f8; margin: 0; padding: 20px;}
-    .card {max-width: 560px; margin: 20px auto; padding: 22px; border-radius: 12px; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,.06);}
-    h2 {text-align: center; margin: 0 0 12px;}
-    label {display: block; margin-top: 12px; font-weight: 600;}
-    select, textarea, input[type=file], button {
-      width: 100%; padding: 10px; margin-top: 8px; border-radius: 8px;
-      border: 1px solid #ccc; box-sizing: border-box;
-    }
-    button {background: #0b72d9; color: #fff; border: none; font-weight: 700; cursor: pointer;}
-    small {color: #666;}
-  </style>
+  <meta charset="UTF-8">
+  <title>Formulário AppSheet</title>
 </head>
 <body>
-  <div class="card">
-    <h2>Cadastro de Manutenção</h2>
-
-    <label>Tipo de Manutenção</label>
-    <select id="tipo">
-      <option value="preventiva">Preventiva</option>
-      <option value="corretiva">Corretiva</option>
-    </select>
-
-    <label>UGD</label>
-    <select id="ugd">
-      <option value="">Selecione...</option>
-      <script>
-        for (let i=1; i<=60; i++) {
-          const n = String(i).padStart(2,'0');
-          document.write(`<option value="UGD${n}">UGD${n}</option>`);
-        }
-      </script>
-    </select>
-
-    <label>Descrição</label>
-    <textarea id="descricao" rows="3" placeholder="Ex: Vazamento de diesel próximo ao tanque."></textarea>
-
-    <label>Fotos (pode enviar várias)</label>
-    <input type="file" id="fotos" accept="image/*" multiple>
-
-    <button id="btnEnviar">Enviar</button>
-    <p id="status" style="margin-top:12px"></p>
-    <small>Observação: página conectada ao Google Apps Script.</small>
-  </div>
+  <h2>Enviar dados + foto</h2>
+  <input type="text" id="nome" placeholder="Nome"><br><br>
+  <input type="email" id="email" placeholder="Email"><br><br>
+  <input type="file" id="foto"><br><br>
+  <button onclick="enviarDados()">Enviar</button>
 
   <script>
-    const btn = document.getElementById('btnEnviar');
-    const status = document.getElementById('status');
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzP10O8z25yH78hJsNUztAWelSx5pjF_FUkY602a6Iv9_WqN1gDns7ImN4eXtgDlFJwrg/exec";
+    let fotoBase64 = '';
 
-    btn.addEventListener('click', async () => {
-      status.textContent = '';
-      const tipo = document.getElementById('tipo').value;
-      const ugd = document.getElementById('ugd').value;
-      const descricao = document.getElementById('descricao').value.trim();
-      const files = document.getElementById('fotos').files;
-
-      if (!ugd || !descricao || files.length === 0) {
-        alert('Preencha UGD, descrição e selecione ao menos 1 foto.');
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = 'Enviando...';
-      try {
-        const fotos = [];
-        for (let i = 0; i < files.length; i++) {
-          const f = files[i];
-          const base64 = await fileToBase64(f);
-          fotos.push({ nome: f.name, tipo: f.type, conteudo: base64.split(',')[1] });
-        }
-
-        const dados = { tipo, ugd, descricao, fotos };
-
-        const resp = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(dados)
-        });
-
-        const texto = await resp.text();
-        let json;
-        try { json = JSON.parse(texto); } catch(e){ json = { sucesso:false, mensagem:texto }; }
-
-        if (json.sucesso) {
-          status.textContent = json.mensagem || 'Upload concluído.';
-          status.style.color = 'green';
-        } else {
-          status.textContent = json.mensagem || 'Erro no upload.';
-          status.style.color = 'red';
-        }
-      } catch (err) {
-        status.textContent = 'Erro: ' + err.message;
-        status.style.color = 'red';
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Enviar';
-      }
+    // Converter foto para base64
+    document.getElementById('foto').addEventListener('change', function() {
+      const file = this.files[0];
+      const reader = new FileReader();
+      reader.onload = function() {
+        fotoBase64 = reader.result.split(',')[1]; // pega só os dados
+      };
+      reader.readAsDataURL(file);
     });
 
-    function fileToBase64(file){
-      return new Promise((res, rej) => {
-        const reader = new FileReader();
-        reader.onload = () => res(reader.result);
-        reader.onerror = rej;
-        reader.readAsDataURL(file);
-      });
+    function enviarDados() {
+      const dados = {
+        nome: document.getElementById('nome').value,
+        email: document.getElementById('email').value,
+        foto: fotoBase64
+      };
+
+      fetch('https://script.google.com/macros/s/AKfycbzX1AXXfCMYUE-QDr2JzOY-QkKJxAPrXjVr1KZAupQYrvoU_U0jCkZmYIj5xsRSWSi1pg/exec', {
+        method: 'POST',
+        body: JSON.stringify(dados),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(res => res.json())
+      .then(resp => {
+        if(resp.status === 'ok') {
+          alert('Enviado com sucesso!\nURL da foto: ' + resp.url);
+        } else {
+          alert('Erro: ' + resp.message);
+        }
+      })
+      .catch(err => alert('Erro de envio: ' + err));
     }
   </script>
 </body>
