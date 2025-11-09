@@ -80,20 +80,38 @@
     <button onclick="enviar()">Enviar</button>
   </div>
 
-  <script>
-    function enviar() {
-      const tipo = document.getElementById('tipo').value;
-      const ugd = document.getElementById('ugd').value;
-      const descricao = document.getElementById('descricao').value.trim();
+ <script>
+  async function enviar() {
+    const tipo = document.getElementById('tipo').value;
+    const ugd = document.getElementById('ugd').value;
+    const descricao = document.getElementById('descricao').value.trim();
+    const fotos = document.getElementById('fotos').files;
 
-      if (!ugd || !descricao) {
-        alert('Por favor, selecione a UGD e preencha a descrição.');
-        return;
-      }
-
-      const nomePasta = `${tipo.toUpperCase()} / ${ugd} - ${descricao}`;
-      alert(`Simulação de envio:\n\nA pasta criada será:\n${nomePasta}`);
+    if (!ugd || !descricao || fotos.length === 0) {
+      alert('Preencha todos os campos e envie ao menos uma foto.');
+      return;
     }
-  </script>
+
+    const formData = new FormData();
+    formData.append('tipo', tipo);
+    formData.append('ugd', ugd);
+    formData.append('descricao', descricao);
+
+    for (let i = 0; i < fotos.length; i++) {
+      formData.append('file' + i, fotos[i]);
+    }
+
+    // 🔗 COLOQUE AQUI O LINK DO SEU GOOGLE SCRIPT
+    const url = "https://script.google.com/macros/s/AKfycbxOC09nWYxie8F7lnMgGYOhSMENz9-7j7PPMFogJM3Dckt34qD4tTd4-k80WQD-XAxc/exec";
+
+    try {
+      const response = await fetch(url, { method: 'POST', body: formData });
+      const result = await response.text();
+      alert(result);
+    } catch (error) {
+      alert("Erro ao enviar: " + error);
+    }
+  }
+</script>
 </body>
 </html>
